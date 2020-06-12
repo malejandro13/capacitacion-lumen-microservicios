@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
 use App\Author;
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class AuthorController extends Controller
 {
+    use ApiResponse;
     /**
      * Create a new controller instance.
      *
@@ -23,8 +26,7 @@ class AuthorController extends Controller
     public function index()
     {
         $authors = Author::all();
-
-        return $authors;
+        return $this->successResponse($authors);
     }
 
     /**
@@ -33,7 +35,16 @@ class AuthorController extends Controller
      */
     public function store(Request $request)
     {
-        return 'Este es nuestro metodo store';
+        $rules = [
+            'name'    => 'required|max:255',
+            'gender' => 'required|in:male,female',
+            'country' => 'required|max:255',
+        ];
+
+       $this->validate($request, $rules);
+
+       $author = Author::create($request->all());
+       return $this->successResponse($author, Response::HTTP_CREATED); 
     }
 
     /**
@@ -42,7 +53,9 @@ class AuthorController extends Controller
      */
     public function show($author)
     {
-        return 'Este es nuestro  metodo show';
+        $author = Author::findOrFail($author);
+
+        return $this->successResponse($author);
     }
 
     /**
@@ -51,7 +64,25 @@ class AuthorController extends Controller
      */
     public function update(Request $request, $author)
     {
-        return 'Este es nuestro  metodo update';
+        $rules = [
+            'name'    => 'max:255',
+            'gender' => 'in:male,female',
+            'country' => 'max:255',
+        ];
+
+        $this->validate($request, $rules);
+
+        $author = Author::findOrFail($author);
+
+        $author->fill($request->all());
+
+        if($author->isClean()){
+            return $this->errorResponse('At least one value must change', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $author->save();
+
+        return $this->successResponse($author);
     }
 
     /**
@@ -60,6 +91,11 @@ class AuthorController extends Controller
      */
     public function destroy($author)
     {  
-        return 'Este es nuestro  metodo destroy';
+
+        return 5/0;
+        $author = Author::findOrFail($author);
+        $author->delete();
+
+        return $this->successResponse($author);
     }
 }
