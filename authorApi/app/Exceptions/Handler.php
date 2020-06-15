@@ -74,7 +74,7 @@ class Handler extends ExceptionHandler
             $errors = $exception->validator->errors()->getMessages();
             return $this->errorResponse($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-
+        
         if(env('APP_DEBUG', false)) {
             return parent::render($request, $exception);
         }
