@@ -7,3 +7,10 @@ services:
       - ./authorApi/:/var/www/html
     ports:
       - 8000:80
+  bookApi:
+    image: malejandro13/nginx-php73-dev:latest
+    container_name: bookApi
+    volumes: 
+      - ./bookApi/:/var/www/html
+    ports: 
+      - 8001:80
