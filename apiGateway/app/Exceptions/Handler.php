@@ -5,12 +5,13 @@ namespace App\Exceptions;
 use Throwable;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Response;
+use GuzzleHttp\Exception\ClientException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use GuzzleHttp\Exception\ClientException;
 
 class Handler extends ExceptionHandler
 {
@@ -26,6 +27,7 @@ class Handler extends ExceptionHandler
         HttpException::class,
         ModelNotFoundException::class,
         ValidationException::class,
+        AuthenticationException::class,
     ];
 
     /**
@@ -58,22 +60,26 @@ class Handler extends ExceptionHandler
             $code = $exception->getStatusCode();
             $message = Response::$statusTexts[$code];
 
-            return $this->errorMessage($message, $code);
+            return $this->errorResponse($message, $code);
         }
 
         if($exception instanceof ModelNotFoundException){
             $model = strtolower(class_basename($exception->getModel()));
 
-            return $this->errorMessage("Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
+            return $this->errorResponse("Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
         }
 
         if($exception instanceof AuthorizationException){
-            return $this->errorMessage($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
+            return $this->errorResponse($exception->getMessage(), Response::HTTP_FORBIDDEN);
+        }
+
+        if($exception instanceof AuthenticationException){
+            return $this->errorResponse($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
 
         if($exception instanceof ValidationException){
             $errors = $exception->validator->errors()->getMessages();
-            return $this->errorMessage($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->errorResponse($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if($exception instanceof ClientException){
@@ -86,6 +92,6 @@ class Handler extends ExceptionHandler
             return parent::render($request, $exception);
         }
 
-        return $this->errorMessage('Unexpected error. Try later', Response::HTTP_INTERNAL_SERVER_ERROR);
+        return $this->errorResponse('Unexpected error. Try later', Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }

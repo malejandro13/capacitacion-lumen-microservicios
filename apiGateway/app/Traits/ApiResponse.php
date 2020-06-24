@@ -8,7 +8,29 @@ trait ApiResponse
 {
 
     /**
-     * Build a success response
+     * Build a valid response
+     * @param string|array $data
+     * @param int $code
+     * @return Illuminate\Http\JsonResponse
+     */
+    public function validResponse($data, $code = Response::HTTP_OK)
+    {
+        return response()->json(['data' => $data], $code);
+    }
+
+    /**
+     * Build a error response
+     * @param string $message
+     * @param int $code
+     * @return Illuminate\Http\JsonResponse
+     */
+    public function errorResponse($message, $code)
+    {
+        return response()->json(['error' => $message, 'code' => $code], $code);
+    }
+
+    /**
+     * Build a success response external service
      * @param string|array $data
      * @param int $code
      * @return Illuminate\Http\Response
@@ -19,7 +41,7 @@ trait ApiResponse
     }
 
     /**
-     * Return an error response
+     * Return an error response external service
      * @param string $message
      * @param int $code
      * @return Illuminate\Http\Response
